@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+    backend:
+        build:
+            context: ./backend
+        ports:
+            - '${BACKEND_PORT}:${BACKEND_PORT}'
+        env_file:
+            - .env
+        networks:
+            - app-network
+
+    #  frontend:
+    #    build:
+    #      context: ./frontend
+    #    ports:
+    #      - "80:80"
+
+    postgres:
+        image: postgres:13
+        env_file:
+            - .env
+        environment:
+            POSTGRES_USER: ${DB_USER}
+            POSTGRES_PASSWORD: ${DB_PASSWORD}
+            POSTGRES_DB: ${DB_NAME}
+        ports:
+            - '${DB_PORT}:${DB_PORT}'
+        volumes:
+            - pgdata:/var/lib/postgresql/data
+        networks:
+            - app-network
+
+volumes:
+    pgdata:
+
+networks:
+    app-network:

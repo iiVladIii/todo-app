@@ -1,0 +1,15 @@
+{
+    "name": "todo-app",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "prettier": "prettier --write \"frontend/**/*.{js,jsx,json,md}\" \"backend/**/*.{js,jsx,json,css,scss,md}\""
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "prettier": "^3.5.3"
+    }
+}
