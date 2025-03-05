@@ -1,4 +1,6 @@
 import { memo } from 'react';
+import './styles/index.scss';
+import { AppRouter } from './providers/RouterProvider/';
 
 interface AppProps {
     className?: string;
@@ -7,5 +9,9 @@ interface AppProps {
 export const App = memo((props: AppProps) => {
     const { className } = props;
 
-    return <div className={'1'}>app</div>;
+    return (
+        <div>
+            <AppRouter />
+        </div>
+    );
 });
