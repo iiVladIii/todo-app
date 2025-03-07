@@ -4,6 +4,8 @@ services:
     backend:
         build:
             context: ./backend
+            args:
+                MODE: ${MODE}
         ports:
             - '${BACKEND_PORT}:${BACKEND_PORT}'
         env_file:

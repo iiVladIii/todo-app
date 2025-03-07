@@ -1,10 +1,14 @@
 version: '3.8'
 
 services:
-  backend:
-    env_file:
-      - .env
+    backend:
+        build:
+            context: ./backend
+            args:
+                MODE: ${MODE}
+        env_file:
+            - .env
 
-  postgres:
-    env_file:
-      - .env
+    postgres:
+        env_file:
+            - .env

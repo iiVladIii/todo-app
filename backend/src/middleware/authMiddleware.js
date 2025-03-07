@@ -9,6 +9,7 @@ const authenticateJWT = (req, res, next) => {
     }
 
     jwt.verify(token, jwtSecret, (err, user) => {
+        console.log(jwtSecret);
         if (err) {
             return res.status(403).json({ message: 'Invalid token' });
         }
