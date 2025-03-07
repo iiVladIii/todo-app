@@ -50,7 +50,7 @@ describe('Register Component', () => {
             target: { value: 'testuser' },
         });
         fireEvent.change(screen.getByLabelText(/password/i), {
-            target: { value: 'password' },
+            target: { value: 'password1dsafdf' },
         });
 
         await act(async () => {
@@ -58,8 +58,14 @@ describe('Register Component', () => {
         });
 
         await waitFor(() => {
-            expect(registerUser).toHaveBeenCalledWith('testuser', 'password');
-            expect(loginUser).toHaveBeenCalledWith('testuser', 'password');
+            expect(registerUser).toHaveBeenCalledWith(
+                'testuser',
+                'password1dsafdf'
+            );
+            expect(loginUser).toHaveBeenCalledWith(
+                'testuser',
+                'password1dsafdf'
+            );
             expect(localStorage.setItem).toHaveBeenCalledWith(
                 'token',
                 mockToken

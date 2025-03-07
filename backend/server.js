@@ -1,6 +1,6 @@
 require('./utils/env');
 const express = require('express');
-const cors = require('cors'); // Импортируем пакет cors
+const cors = require('cors');
 const sequelize = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const todoRoutes = require('./routes/todoRoutes');
