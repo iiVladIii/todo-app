@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: backend-deploy
+    namespace: todo-app-deploy
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: backend
+    template:
+        metadata:
+            labels:
+                app: backend
+        spec:
+            nodeSelector:
+                kubernetes.io/arch: amd64
+            containers:
+                - name: backend
+                  image: ivladii/todo-backend-dev:1.0.1
+                  imagePullPolicy: Always
+                  ports:
+                      - containerPort: 8080
+                  envFrom:
+                      - configMapRef:
+                            name: app-config
+                      - secretRef:
+                            name: app-secrets
+                  resources:
+                      requests:
+                          cpu: 100m
+                      limits:
+                          cpu: 200m
