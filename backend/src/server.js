@@ -2,8 +2,8 @@ require('./utils/env');
 const express = require('express');
 const cors = require('cors');
 const sequelize = require('./config/db');
-const authRoutes = require('./routes/authRoutes');
-const todoRoutes = require('./routes/todoRoutes');
+const routes = require('./routes');
+const metricsMiddleware = require('./middleware/metricsMiddleware');
 const { port } = require('./config/config');
 
 const app = express();
@@ -17,9 +17,8 @@ app.use(
 );
 
 app.use(express.json());
-app.use('/api/auth', authRoutes);
-app.use('/api/todos', todoRoutes);
-
+app.use('/', routes);
+console.log('hello');
 sequelize
     .sync()
     .then(() => {
