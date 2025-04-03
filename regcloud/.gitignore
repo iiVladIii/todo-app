@@ -1,0 +1,10 @@
+output.json
+
+terraform.tfvars
+**/.ssh
+reglet_response.json
+vm_ip.txt
+.terraform
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
