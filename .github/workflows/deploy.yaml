@@ -89,9 +89,10 @@ jobs:
           export KUBECONFIG=./kubeconfig
           kubectl apply -f k8s/deployments/backend-deployment.yml --validate=false
           kubectl apply -f k8s/deployments/frontend-deployment.yml --validate=false
-          kubectl apply -f k8s/deployments --validate=false
+#          kubectl apply -f k8s/deployments --validate=false
 
       - name: Verify deployment
         run: |
+          export KUBECONFIG=./kubeconfig
           kubectl rollout status deployment/backend-deploy -n todo-app-deploy
           kubectl rollout status deployment/frontend-deploy -n todo-app-deploy
