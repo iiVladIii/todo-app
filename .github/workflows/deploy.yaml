@@ -51,7 +51,8 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: ${{ matrix.context }}
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64,
+#          linux/arm64
           push: true
           build-args: ${{ matrix.build_args }}
           tags: |
@@ -80,7 +81,7 @@ jobs:
 
       - name: Deploy to Kubernetes
         run: |
-          kubectl apply -f k8s/
+          kubectl apply -f k8s/deployments
 
       - name: Verify deployment
         run: |
