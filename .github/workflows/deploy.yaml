@@ -86,6 +86,7 @@ jobs:
 
       - name: Deploy to Kubernetes
         run: |
+          export KUBECONFIG=./kubeconfig
           kubectl apply -f k8s/deployments/backend-deployment.yml --validate=false
           kubectl apply -f k8s/deployments/frontend-deployment.yml --validate=false
           kubectl apply -f k8s/deployments --validate=false
