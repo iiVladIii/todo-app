@@ -8,8 +8,20 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-push:
+  build-and-push-images:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [backend, frontend]
+        include:
+          - service: backend
+            image_name: ivladii/todo-backend-dev
+            context: ./backend
+            build_args: "MODE=${{ vars.MODE }}"
+          - service: frontend
+            image_name: ivladii/todo-frontend-dev
+            context: ./frontend
+            build_args: ""
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -22,32 +34,24 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Print environment variable
-        run: echo "My variable value is ${{ vars.MODE }}"
-      - name: Build and push backend image
-        uses: docker/build-push-action@v4
-        with:
-          context: ./backend
-          platforms: linux/amd64,linux/arm64
-          push: true
-          build-args: |
-            MODE=${{ vars.MODE }}
-          tags: |
-            ivladii/todo-backend-dev:latest
-            ivladii/todo-backend-dev:${{ github.sha }}
 
-      - name: Build and push frontend image
+      - name: Print environment variable
+        if: matrix.service == 'backend'
+        run: echo "My variable value is ${{ vars.MODE }}"
+
+      - name: Build and push ${{ matrix.service }} image
         uses: docker/build-push-action@v4
         with:
-          context: ./frontend
+          context: ${{ matrix.context }}
           platforms: linux/amd64,linux/arm64
           push: true
+          build-args: ${{ matrix.build_args }}
           tags: |
-            ivladii/todo-frontend-dev:latest
-            ivladii/todo-frontend-dev:${{ github.sha }}
+            ${{ matrix.image_name }}:latest
+            ${{ matrix.image_name }}:${{ github.sha }}
 
   deploy:
-    needs: build-and-push
+    needs: build-and-push-images
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     steps:
