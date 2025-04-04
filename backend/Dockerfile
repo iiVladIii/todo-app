@@ -12,8 +12,7 @@ RUN npm install
 COPY . .
 
 #RUN ./build.sh
-RUN echo "Building with MODE=${MODE}" && \
-    npm run build:${MODE}
+RUN npm run build:${MODE}
 
 FROM node:18-alpine AS runtime
 
