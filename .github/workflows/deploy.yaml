@@ -73,6 +73,11 @@ jobs:
         run: |
           echo "${{ secrets.KUBE_CONFIG }}" | base64 -d > kubeconfig
           export KUBECONFIG=./kubeconfig
+          chmod 600 kubeconfig
+          export KUBECONFIG=./kubeconfig
+          kubectl config view
+          kubectl config current-context
+          kubectl cluster-info
 
       - name: Update deployment manifests
         run: |
@@ -81,6 +86,8 @@ jobs:
 
       - name: Deploy to Kubernetes
         run: |
+          kubectl apply -f k8s/deployments/backend-deployment.yml --validate=false
+          kubectl apply -f k8s/deployments/frontend-deployment.yml --validate=false
           kubectl apply -f k8s/deployments --validate=false
 
       - name: Verify deployment
