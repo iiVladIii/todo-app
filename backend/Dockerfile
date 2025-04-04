@@ -11,6 +11,7 @@ RUN npm install
 
 COPY . .
 
+RUN chmod +x ./build.sh && ./build.sh
 RUN ./build.sh
 
 FROM node:18-alpine AS runtime
