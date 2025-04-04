@@ -64,8 +64,8 @@ jobs:
 
       - name: Update deployment manifests
         run: |
-          sed -i "s|ivladii/todo-backend-dev:.*|ivladii/todo-backend-dev:${{ github.sha }}|g" k8s/*.yaml
-          sed -i "s|ivladii/todo-frontend-dev:.*|ivladii/todo-frontend-dev:${{ github.sha }}|g" k8s/*.yaml
+          sed -i "s|ivladii/todo-backend-dev:.*|ivladii/todo-backend-dev:${{ github.sha }}|g" k8s/deployments/*.yaml
+          sed -i "s|ivladii/todo-frontend-dev:.*|ivladii/todo-frontend-dev:${{ github.sha }}|g" k8s/deployments/*.yaml
 
       - name: Deploy to Kubernetes
         run: |
@@ -73,5 +73,5 @@ jobs:
 
       - name: Verify deployment
         run: |
-          kubectl rollout status deployment/todo-backend
-          kubectl rollout status deployment/todo-frontend
+          kubectl rollout status deployment/backend-deploy -n todo-app-deploy
+          kubectl rollout status deployment/frontend-deploy -n todo-app-deploy
