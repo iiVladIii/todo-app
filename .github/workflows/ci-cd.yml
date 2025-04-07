@@ -111,7 +111,10 @@ jobs:
             - name: Retrieve SonarQube Coverage
               run: |
                   SONAR_PROJECT_URL="${{ secrets.SONAR_HOST_URL }}/api/measures/component?component=${{ github.repository_owner }}_${{ github.event.repository.name }}&metricKeys=coverage"
-                  COVERAGE=$(curl -s -u ${{ secrets.SONAR_TOKEN }}: $SONAR_PROJECT_URL | jq -r '.component.measures[0].value')
+                  echo "Fetching coverage from: $SONAR_PROJECT_URL"
+                  RESPONSE=$(curl -s -u ${{ secrets.SONAR_TOKEN }}: $SONAR_PROJECT_URL)
+                  echo "Response: $RESPONSE"
+                  COVERAGE=$(echo $RESPONSE | jq -r '.component.measures[0].value')
                   echo "Code coverage is: $COVERAGE%"
 
     build-backend:
