@@ -81,15 +81,6 @@ jobs:
                       -Dsonar.coverage.exclusions=**/node_modules/**,**/tests/**,**/*.test.js,**/*.spec.js
                       -Dsonar.qualitygate.wait=true
                       -Dsonar.qualitygate.timeout=300
-                      -Dsonar.coverageReportPaths=coverage-report.xml
-
-            - name: SonarQube Quality Gate check
-              uses: sonarsource/sonarqube-quality-gate-action@master
-              timeout-minutes: 5
-              env:
-                  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-              with:
-                  scanMetadataReportFile: .scannerwork/report-task.txt
 
     build-backend:
         runs-on: ubuntu-latest
