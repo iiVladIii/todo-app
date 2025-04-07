@@ -77,7 +77,6 @@ jobs:
                       -Dsonar.projectKey=${{ github.repository_owner }}_${{ github.event.repository.name }}
                       -Dsonar.organization=${{ github.repository_owner }}
                       -Dsonar.sources=backend/src,frontend/src
-                      -Dsonar.tests=backend/tests,frontend/tests
                       -Dsonar.javascript.lcov.reportPaths=./frontend/coverage/lcov.info,./backend/coverage/lcov.info
                       -Dsonar.coverage.exclusions=**/node_modules/**,**/tests/**,**/*.test.js,**/*.spec.js
                       -Dsonar.qualitygate.wait=true
