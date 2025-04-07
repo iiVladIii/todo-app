@@ -18,3 +18,6 @@ output "vm_ssh" {
 output "vm_ssh_skip" {
   value = "ssh -i ${path.cwd}/ssh/.ssh/${local.vm_name} root@${local.reglet_ip} -o StrictHostKeyChecking=no"
 }
+output "vm_ssh_port_forward_solarqube" {
+  value = "ssh -i ${path.cwd}/ssh/.ssh/${local.vm_name} -L 9000:localhost:9000 root@${local.reglet_ip} -o StrictHostKeyChecking=no"
+}

@@ -82,3 +82,28 @@ resource "null_resource" "install_docker" {
     command = "bash ./scripts/install_docker.sh ${local.vm_name} ${local.reglet_ip} ${path.cwd}"
   }
 }
+
+resource "null_resource" "setup_sonarqube" {
+  depends_on = [null_resource.install_docker]
+
+  provisioner "local-exec" {
+    command = "bash ./scripts/config_sonarqube.sh ${local.vm_name} ${local.reglet_ip} ${path.cwd}"
+  }
+}
+
+resource "null_resource" "clear_previous_hosts" {
+  depends_on = [null_resource.setup_sonarqube]
+
+  provisioner "local-exec" {
+    command = "bash ./scripts/aply_port_forward.sh ${local.vm_name} ${local.reglet_ip} ${path.cwd}"
+  }
+}
+
+resource "null_resource" "setup_port_forward" {
+  depends_on = [null_resource.clear_previous_hosts]
+
+  provisioner "local-exec" {
+    command = "ssh-keygen -R ${local.reglet_ip}"
+  }
+}
+

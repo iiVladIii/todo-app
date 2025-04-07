@@ -37,6 +37,13 @@ ssh -o StrictHostKeyChecking=no -i $PROJECT_DIR/ssh/.ssh/$SSH_KEY_NAME root@$IP 
   systemctl enable docker
   systemctl start docker
 
+  echo "Installing Docker Compose..."
+  curl -L "https://github.com/docker/compose/releases/download/v2.20.3/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+  chmod +x /usr/local/bin/docker-compose
+
+  echo "Verifying Docker Compose installation..."
+  docker-compose --version
+
   echo "Docker installation completed:"
   docker --version
 '
