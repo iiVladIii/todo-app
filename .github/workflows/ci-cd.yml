@@ -72,13 +72,13 @@ jobs:
                   node-version: '18'
 
             - name: Download backend coverage
-              uses: actions/download-artifact@v3
+              uses: actions/download-artifact@v4
               with:
                   name: backend-coverage
                   path: ./backend/coverage/
 
             - name: Download frontend coverage
-              uses: actions/download-artifact@v3
+              uses: actions/download-artifact@v4
               with:
                   name: frontend-coverage
                   path: ./frontend/coverage/
@@ -179,14 +179,14 @@ jobs:
 
             - name: Download backend build
               if: matrix.service == 'backend'
-              uses: actions/download-artifact@v3
+              uses: actions/download-artifact@v4
               with:
                   name: backend-build
                   path: ./backend/dist/
 
             - name: Download frontend build
               if: matrix.service == 'frontend'
-              uses: actions/download-artifact@v3
+              uses: actions/download-artifact@v4
               with:
                   name: frontend-build
                   path: ./frontend/build/
