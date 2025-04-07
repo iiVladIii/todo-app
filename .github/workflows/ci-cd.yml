@@ -262,3 +262,52 @@ jobs:
                   export KUBECONFIG=./kubeconfig
                   kubectl rollout status deployment/backend-deploy -n todo-app-deploy
                   kubectl rollout status deployment/frontend-deploy -n todo-app-deploy
+    notify:
+        runs-on: ubuntu-latest
+        needs:
+            [
+                test-backend,
+                test-frontend,
+                sonarqube-analysis,
+                build-backend,
+                build-frontend,
+                build-and-push-images,
+                deploy,
+            ]
+        if: always()
+        steps:
+            - name: Prepare notification
+              id: prepare
+              run: |
+                  # Получаем статусы всех jobs через GitHub API
+                  BUILD_STATUS="${{ needs.build.result }}"
+                  TEST_STATUS="${{ needs.test.result }}"
+                  DEPLOY_STATUS="${{ needs.deploy.result }}"
+
+                  # Формируем сообщение
+                  if [[ "$BUILD_STATUS" == "success" && "$TEST_STATUS" == "success" && "$DEPLOY_STATUS" == "success" ]]; then
+                    echo "status=✅ Все этапы CI/CD успешно завершены!" >> $GITHUB_OUTPUT
+                    echo "success=true" >> $GITHUB_OUTPUT
+                  else
+                    echo "status=❌ CI/CD завершился с ошибками!" >> $GITHUB_OUTPUT
+                    echo "success=false" >> $GITHUB_OUTPUT
+                  fi
+
+                  # Детальный статус
+                  echo "details=Build: $BUILD_STATUS%0ATest: $TEST_STATUS%0ADeploy: $DEPLOY_STATUS" >> $GITHUB_OUTPUT
+
+            - name: Send Telegram notification
+              uses: appleboy/telegram-action@master
+              with:
+                  to: ${{ secrets.TELEGRAM_TO }}
+                  token: ${{ secrets.TELEGRAM_TOKEN }}
+                  message: |
+                      ${{ steps.prepare.outputs.status }}
+
+                      Детали:
+                      ${{ steps.prepare.outputs.details }}
+
+                      Репозиторий: ${{ github.repository }}
+                      Ветка: ${{ github.ref_name }}
+                      Коммит: ${{ github.event.head_commit.message }}
+                      ${{ steps.prepare.outputs.success == 'false' && 'Подробности: https://github.com/' || '' }}${{ steps.prepare.outputs.success == 'false' && github.repository || '' }}${{ steps.prepare.outputs.success == 'false' && '/actions/runs/' || '' }}${{ steps.prepare.outputs.success == 'false' && github.run_id || '' }}
