@@ -58,7 +58,7 @@ jobs:
                   path: ./frontend/coverage/
                   retention-days: 1
 
-    sonarqube-parallel:
+    sonarqube-analysis:
         runs-on: ubuntu-latest
         needs: [test-backend, test-frontend]
         steps:
@@ -90,52 +90,73 @@ jobs:
                   echo "Frontend coverage files:"
                   ls -la ./frontend/coverage/
 
-            - name: Run SonarQube Analysis and Security Scan in parallel
+            - name: Run SonarQube Analysis
               run: |
-                  # Run both jobs in parallel
-                  (
-                    # SonarQube Analysis job
-                    export SONAR_SCANNER_OPTS="-Dsonar.projectKey=${{ github.repository_owner }}_${{ github.event.repository.name }} \
-                    -Dsonar.organization=${{ github.repository_owner }} \
-                    -Dsonar.sources=backend/src,frontend/src \
-                    -Dsonar.javascript.lcov.reportPaths=./frontend/coverage/lcov.info,./backend/coverage/lcov.info \
-                    -Dsonar.coverage.exclusions=**/node_modules/**,**/tests/**,**/*.test.js,**/*.spec.js \
-                    -Dsonar.qualitygate.wait=true \
-                    -Dsonar.qualitygate.timeout=300 \
-                    -Dsonar.qualitygate.conditions=coverage>80"
+                  export SONAR_SCANNER_OPTS="-Dsonar.projectKey=${{ github.repository_owner }}_${{ github.event.repository.name }} \
+                  -Dsonar.organization=${{ github.repository_owner }} \
+                  -Dsonar.sources=backend/src,frontend/src \
+                  -Dsonar.javascript.lcov.reportPaths=./frontend/coverage/lcov.info,./backend/coverage/lcov.info \
+                  -Dsonar.coverage.exclusions=**/node_modules/**,**/tests/**,**/*.test.js,**/*.spec.js \
+                  -Dsonar.qualitygate.wait=true \
+                  -Dsonar.qualitygate.timeout=300 \
+                  -Dsonar.qualitygate.conditions=coverage>80"
 
-                    sonar-scanner > sonarqube-analysis.log 2>&1
-                  ) &
+                  sonar-scanner
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+                  SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
-                  (
-                    # SonarQube Security Scan job
-                    export SONAR_SCANNER_OPTS="-Dsonar.projectKey=${{ github.repository_owner }}_${{ github.event.repository.name }}_security \
-                    -Dsonar.organization=${{ github.repository_owner }} \
-                    -Dsonar.sources=backend/src,frontend/src \
-                    -Dsonar.javascript.lcov.reportPaths=./frontend/coverage/lcov.info,./backend/coverage/lcov.info \
-                    -Dsonar.coverage.exclusions=**/node_modules/**,**/tests/**,**/*.test.js,**/*.spec.js,**/*.test.ts,**/*.spec.ts \
-                    -Dsonar.exclusions=**/*.test.js,**/*.spec.js,**/*.test.ts,**/*.test.tsx,**/*.test.jsx,**/*.spec.ts,**/tests/**,**/test/**,**/__tests__/** \
-                    -Dsonar.qualitygate.wait=true \
-                    -Dsonar.qualitygate.timeout=300 \
-                    -Dsonar.qualitygate.conditions=coverage>80 \
-                    -Dsonar.security.enabled=true \
-                    -Dsonar.security.vulnerabilityProbability.critical=BLOCKER \
-                    -Dsonar.security.vulnerabilityProbability.high=CRITICAL \
-                    -Dsonar.security.vulnerabilityProbability.medium=MAJOR \
-                    -Dsonar.security.vulnerabilityProbability.low=MINOR"
+    sonarqube-security:
+        runs-on: ubuntu-latest
+        needs: [test-backend, test-frontend]
+        steps:
+            - uses: actions/checkout@v3
+              with:
+                  fetch-depth: 0
 
-                    sonar-scanner > sonarqube-security.log 2>&1
-                  ) &
+            - name: Set up Node.js
+              uses: actions/setup-node@v3
+              with:
+                  node-version: '18'
 
-                  # Wait for both jobs to complete
-                  wait
+            - name: Download backend coverage
+              uses: actions/download-artifact@v4
+              with:
+                  name: backend-coverage
+                  path: ./backend/coverage/
 
-                  # Check results
-                  echo "SonarQube Analysis Results:"
-                  cat sonarqube-analysis.log
+            - name: Download frontend coverage
+              uses: actions/download-artifact@v4
+              with:
+                  name: frontend-coverage
+                  path: ./frontend/coverage/
 
-                  echo "SonarQube Security Scan Results:"
-                  cat sonarqube-security.log
+            - name: List coverage files
+              run: |
+                  echo "Backend coverage files:"
+                  ls -la ./backend/coverage/
+                  echo "Frontend coverage files:"
+                  ls -la ./frontend/coverage/
+
+            - name: Run SonarQube Security Scan
+              run: |
+                  export SONAR_SCANNER_OPTS="-Dsonar.projectKey=${{ github.repository_owner }}_${{ github.event.repository.name }}_security \
+                  -Dsonar.organization=${{ github.repository_owner }} \
+                  -Dsonar.sources=backend/src,frontend/src \
+                  -Dsonar.javascript.lcov.reportPaths=./frontend/coverage/lcov.info,./backend/coverage/lcov.info \
+                  -Dsonar.coverage.exclusions=**/node_modules/**,**/tests/**,**/*.test.js,**/*.spec.js,**/*.test.ts,**/*.spec.ts \
+                  -Dsonar.exclusions=**/*.test.js,**/*.spec.js,**/*.test.ts,**/*.test.tsx,**/*.test.jsx,**/*.spec.ts,**/tests/**,**/test/**,**/__tests__/** \
+                  -Dsonar.qualitygate.wait=true \
+                  -Dsonar.qualitygate.timeout=300 \
+                  -Dsonar.qualitygate.conditions=coverage>80 \
+                  -Dsonar.security.enabled=true \
+                  -Dsonar.security.vulnerabilityProbability.critical=BLOCKER \
+                  -Dsonar.security.vulnerabilityProbability.high=CRITICAL \
+                  -Dsonar.security.vulnerabilityProbability.medium=MAJOR \
+                  -Dsonar.security.vulnerabilityProbability.low=MINOR"
+
+                  sonar-scanner
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -143,7 +164,7 @@ jobs:
 
     build-backend:
         runs-on: ubuntu-latest
-        needs: [sonarqube-parallel]
+        needs: [sonarqube-analysis, sonarqube-security]
         steps:
             - uses: actions/checkout@v3
 
@@ -169,7 +190,7 @@ jobs:
 
     build-frontend:
         runs-on: ubuntu-latest
-        needs: [sonarqube-parallel]
+        needs: [sonarqube-analysis, sonarqube-security]
         steps:
             - uses: actions/checkout@v3
 
@@ -300,7 +321,8 @@ jobs:
         needs:
             - test-backend
             - test-frontend
-            - sonarqube-parallel
+            - sonarqube-analysis
+            - sonarqube-security
             - build-backend
             - build-frontend
             - build-and-push-images
@@ -313,7 +335,8 @@ jobs:
                   # Получаем статусы всех jobs
                   TEST_BACKEND="${{ needs.test-backend.result }}"
                   TEST_FRONTEND="${{ needs.test-frontend.result }}"
-                  SONARQUBE="${{ needs.sonarqube-parallel.result }}"
+                  SONARQUBE_ANALYSIS="${{ needs.sonarqube-analysis.result }}"
+                  SONARQUBE_SECURITY="${{ needs.sonarqube-security.result }}"
                   BUILD_BACKEND="${{ needs.build-backend.result }}"
                   BUILD_FRONTEND="${{ needs.build-frontend.result }}"
                   BUILD_PUSH_IMAGES="${{ needs.build-and-push-images.result }}"
@@ -335,7 +358,8 @@ jobs:
                   # Проверяем общий статус
                   if [[ "$TEST_BACKEND" == "success" && \
                         "$TEST_FRONTEND" == "success" && \
-                        "$SONARQUBE" == "success" && \
+                        "$SONARQUBE_ANALYSIS" == "success" && \
+                        "$SONARQUBE_SECURITY" == "success" && \
                         "$BUILD_BACKEND" == "success" && \
                         "$BUILD_FRONTEND" == "success" && \
                         "$BUILD_PUSH_IMAGES" == "success" && \
@@ -350,7 +374,8 @@ jobs:
                   # Формируем HTML-таблицу с результатами
                   TEST_BACKEND_EMOJI=$(get_emoji "$TEST_BACKEND")
                   TEST_FRONTEND_EMOJI=$(get_emoji "$TEST_FRONTEND")
-                  SONARQUBE_EMOJI=$(get_emoji "$SONARQUBE")
+                  SONARQUBE_ANALYSIS_EMOJI=$(get_emoji "$SONARQUBE_ANALYSIS")
+                  SONARQUBE_SECURITY_EMOJI=$(get_emoji "$SONARQUBE_SECURITY")
                   BUILD_BACKEND_EMOJI=$(get_emoji "$BUILD_BACKEND")
                   BUILD_FRONTEND_EMOJI=$(get_emoji "$BUILD_FRONTEND")
                   BUILD_PUSH_IMAGES_EMOJI=$(get_emoji "$BUILD_PUSH_IMAGES")
@@ -360,7 +385,8 @@ jobs:
                   echo "<pre>" >> $GITHUB_OUTPUT
                   echo "$TEST_BACKEND_EMOJI Тестирование бэкенда: $TEST_BACKEND" >> $GITHUB_OUTPUT
                   echo "$TEST_FRONTEND_EMOJI Тестирование фронтенда: $TEST_FRONTEND" >> $GITHUB_OUTPUT
-                  echo "$SONARQUBE_EMOJI Анализ SonarQube: $SONARQUBE" >> $GITHUB_OUTPUT
+                  echo "$SONARQUBE_ANALYSIS_EMOJI Анализ SonarQube: $SONARQUBE_ANALYSIS" >> $GITHUB_OUTPUT
+                  echo "$SONARQUBE_SECURITY_EMOJI Анализ безопасности SonarQube: $SONARQUBE_SECURITY" >> $GITHUB_OUTPUT
                   echo "$BUILD_BACKEND_EMOJI Сборка бэкенда: $BUILD_BACKEND" >> $GITHUB_OUTPUT
                   echo "$BUILD_FRONTEND_EMOJI Сборка фронтенда: $BUILD_FRONTEND" >> $GITHUB_OUTPUT
                   echo "$BUILD_PUSH_IMAGES_EMOJI Сборка и публикация образов: $BUILD_PUSH_IMAGES" >> $GITHUB_OUTPUT
