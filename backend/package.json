@@ -10,7 +10,7 @@
         "build": "NODE_ENV=development babel src --out-dir dist",
         "build:production": "NODE_ENV=development babel src --out-dir dist",
         "build:development": "NODE_ENV=development babel src --out-dir dist",
-        "test": "jest"
+        "test": "jest --coverage"
     },
     "keywords": [],
     "author": "",
