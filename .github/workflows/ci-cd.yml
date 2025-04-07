@@ -61,16 +61,17 @@ jobs:
               run: |
                   cd ./backend
                   npm install
-                  npm run test:coverage
+                  npm test -- --coverage
                   cd ../frontend
                   npm install
-                  npm run test:coverage
+                  npm test -- --coverage
 
             - name: SonarQube Scan
               uses: SonarSource/sonarcloud-github-action@master
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+                  SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
               with:
                   args: >
                       -Dsonar.projectKey=${{ github.repository_owner }}_${{ github.event.repository.name }}
