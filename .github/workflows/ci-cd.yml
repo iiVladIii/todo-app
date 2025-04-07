@@ -22,15 +22,16 @@ jobs:
               working-directory: ./backend
               run: npm install
 
-            - name: Run tests for backend
+            - name: Run tests for backend with coverage
               working-directory: ./backend
               run: npm test -- --coverage
 
             - name: Upload backend coverage
-              uses: actions/upload-artifact@v2
+              uses: actions/upload-artifact@v3
               with:
                   name: backend-coverage
                   path: ./backend/coverage/
+                  retention-days: 1
 
     test-frontend:
         runs-on: ubuntu-latest
@@ -46,15 +47,16 @@ jobs:
               working-directory: ./frontend
               run: npm install
 
-            - name: Run tests for frontend
+            - name: Run tests for frontend with coverage
               working-directory: ./frontend
               run: npm run test -- --coverage
 
             - name: Upload frontend coverage
-              uses: actions/upload-artifact@v2
+              uses: actions/upload-artifact@v3
               with:
                   name: frontend-coverage
                   path: ./frontend/coverage/
+                  retention-days: 1
 
     sonarqube-analysis:
         runs-on: ubuntu-latest
@@ -64,17 +66,29 @@ jobs:
               with:
                   fetch-depth: 0
 
+            - name: Set up Node.js
+              uses: actions/setup-node@v2
+              with:
+                  node-version: '18'
+
             - name: Download backend coverage
-              uses: actions/download-artifact@v2
+              uses: actions/download-artifact@v3
               with:
                   name: backend-coverage
                   path: ./backend/coverage/
 
             - name: Download frontend coverage
-              uses: actions/download-artifact@v2
+              uses: actions/download-artifact@v3
               with:
                   name: frontend-coverage
                   path: ./frontend/coverage/
+
+            - name: List coverage files
+              run: |
+                  echo "Backend coverage files:"
+                  ls -la ./backend/coverage/
+                  echo "Frontend coverage files:"
+                  ls -la ./frontend/coverage/
 
             - name: SonarQube Scan
               uses: SonarSource/sonarcloud-github-action@master
