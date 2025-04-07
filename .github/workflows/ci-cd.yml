@@ -105,6 +105,10 @@ jobs:
                       -Dsonar.coverage.exclusions=**/node_modules/**,**/tests/**,**/*.test.js,**/*.spec.js
                       -Dsonar.qualitygate.wait=true
                       -Dsonar.qualitygate.timeout=300
+                      -Dsonar.coverage.minimum=80
+                      -Dsonar.qualitygate.condition=coverage>=80
+                      -Dsonar.javascript.coveragePlugin=lcov
+                      -Dsonar.qualitygate.quality.gate.name=Code_Coverage_80_Percent
 
     build-backend:
         runs-on: ubuntu-latest
@@ -155,7 +159,7 @@ jobs:
               uses: actions/upload-artifact@v4
               with:
                   name: frontend-build
-                  path: ./frontend/build/
+                  path: ./frontend/dist/
                   retention-days: 1
 
     build-and-push-images:
@@ -189,7 +193,7 @@ jobs:
               uses: actions/download-artifact@v4
               with:
                   name: frontend-build
-                  path: ./frontend/build/
+                  path: ./frontend/dist/
 
             - name: Set up Docker Buildx
               uses: docker/setup-buildx-action@v2
