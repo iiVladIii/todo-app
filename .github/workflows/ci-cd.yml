@@ -90,22 +90,22 @@ jobs:
                   echo "Frontend coverage files:"
                   ls -la ./frontend/coverage/
 
-            - name: Run SonarQube Analysis
-              run: |
-                  export SONAR_SCANNER_OPTS="-Dsonar.projectKey=${{ github.repository_owner }}_${{ github.event.repository.name }} \
-                  -Dsonar.organization=${{ github.repository_owner }} \
-                  -Dsonar.sources=backend/src,frontend/src \
-                  -Dsonar.javascript.lcov.reportPaths=./frontend/coverage/lcov.info,./backend/coverage/lcov.info \
-                  -Dsonar.coverage.exclusions=**/node_modules/**,**/tests/**,**/*.test.js,**/*.spec.js \
-                  -Dsonar.qualitygate.wait=true \
-                  -Dsonar.qualitygate.timeout=300 \
-                  -Dsonar.qualitygate.conditions=coverage>80"
-
-                  sonar-scanner
+            - name: Setup SonarQube Scanner
+              uses: SonarSource/sonarqube-scan-action@master
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
                   SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+              with:
+                  args: >
+                      -Dsonar.projectKey=${{ github.repository_owner }}_${{ github.event.repository.name }}
+                      -Dsonar.organization=${{ github.repository_owner }}
+                      -Dsonar.sources=backend/src,frontend/src
+                      -Dsonar.javascript.lcov.reportPaths=./frontend/coverage/lcov.info,./backend/coverage/lcov.info
+                      -Dsonar.coverage.exclusions=**/node_modules/**,**/tests/**,**/*.test.js,**/*.spec.js
+                      -Dsonar.qualitygate.wait=true
+                      -Dsonar.qualitygate.timeout=300
+                      -Dsonar.qualitygate.conditions=coverage>80
 
     sonarqube-security:
         runs-on: ubuntu-latest
@@ -139,28 +139,28 @@ jobs:
                   echo "Frontend coverage files:"
                   ls -la ./frontend/coverage/
 
-            - name: Run SonarQube Security Scan
-              run: |
-                  export SONAR_SCANNER_OPTS="-Dsonar.projectKey=${{ github.repository_owner }}_${{ github.event.repository.name }}_security \
-                  -Dsonar.organization=${{ github.repository_owner }} \
-                  -Dsonar.sources=backend/src,frontend/src \
-                  -Dsonar.javascript.lcov.reportPaths=./frontend/coverage/lcov.info,./backend/coverage/lcov.info \
-                  -Dsonar.coverage.exclusions=**/node_modules/**,**/tests/**,**/*.test.js,**/*.spec.js,**/*.test.ts,**/*.spec.ts \
-                  -Dsonar.exclusions=**/*.test.js,**/*.spec.js,**/*.test.ts,**/*.test.tsx,**/*.test.jsx,**/*.spec.ts,**/tests/**,**/test/**,**/__tests__/** \
-                  -Dsonar.qualitygate.wait=true \
-                  -Dsonar.qualitygate.timeout=300 \
-                  -Dsonar.qualitygate.conditions=coverage>80 \
-                  -Dsonar.security.enabled=true \
-                  -Dsonar.security.vulnerabilityProbability.critical=BLOCKER \
-                  -Dsonar.security.vulnerabilityProbability.high=CRITICAL \
-                  -Dsonar.security.vulnerabilityProbability.medium=MAJOR \
-                  -Dsonar.security.vulnerabilityProbability.low=MINOR"
-
-                  sonar-scanner
+            - name: Setup SonarQube Scanner
+              uses: SonarSource/sonarqube-scan-action@master
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
                   SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+              with:
+                  args: >
+                      -Dsonar.projectKey=${{ github.repository_owner }}_${{ github.event.repository.name }}_security
+                      -Dsonar.organization=${{ github.repository_owner }}
+                      -Dsonar.sources=backend/src,frontend/src
+                      -Dsonar.javascript.lcov.reportPaths=./frontend/coverage/lcov.info,./backend/coverage/lcov.info
+                      -Dsonar.coverage.exclusions=**/node_modules/**,**/tests/**,**/*.test.js,**/*.spec.js,**/*.test.ts,**/*.spec.ts
+                      -Dsonar.exclusions=**/*.test.js,**/*.spec.js,**/*.test.ts,**/*.test.tsx,**/*.test.jsx,**/*.spec.ts,**/tests/**,**/test/**,**/__tests__/**
+                      -Dsonar.qualitygate.wait=true
+                      -Dsonar.qualitygate.timeout=300
+                      -Dsonar.qualitygate.conditions=coverage>80
+                      -Dsonar.security.enabled=true
+                      -Dsonar.security.vulnerabilityProbability.critical=BLOCKER
+                      -Dsonar.security.vulnerabilityProbability.high=CRITICAL
+                      -Dsonar.security.vulnerabilityProbability.medium=MAJOR
+                      -Dsonar.security.vulnerabilityProbability.low=MINOR
 
     build-backend:
         runs-on: ubuntu-latest
