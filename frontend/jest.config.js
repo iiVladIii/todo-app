@@ -9,5 +9,11 @@ module.exports = {
         '^.+\\.(js|jsx|ts|tsx)$': 'babel-jest',
     },
     moduleFileExtensions: ['js', 'jsx', 'ts', 'tsx'],
-    collectCoverageFrom: ['src/**/*.{js,jsx,ts,tsx}', '!src/**/*.d.ts'],
+    collectCoverageFrom: [
+        'src/**/*.{js,jsx,ts,tsx}',
+        '!src/**/*.d.ts',
+        '!src/**/index.js',
+        '!src/**/index.ts',
+        '!src/**/index.tsx',
+    ],
 };

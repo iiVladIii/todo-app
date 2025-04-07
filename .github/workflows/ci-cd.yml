@@ -91,6 +91,7 @@ jobs:
                   ls -la ./frontend/coverage/
 
             - name: SonarQube Scan
+              id: sonarqube
               uses: SonarSource/sonarcloud-github-action@master
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -105,8 +106,13 @@ jobs:
                       -Dsonar.coverage.exclusions=**/node_modules/**,**/tests/**,**/*.test.js,**/*.spec.js
                       -Dsonar.qualitygate.wait=true
                       -Dsonar.qualitygate.timeout=300
-                      -Dsonar.coverage.minimum=80
-                      -Dsonar.qualitygate.condition=coverage>=80
+                      -Dsonar.qualitygate.conditions=coverage>80
+
+            - name: Retrieve SonarQube Coverage
+              run: |
+                  SONAR_PROJECT_URL="${{ secrets.SONAR_HOST_URL }}/api/measures/component?component=${{ github.repository_owner }}_${{ github.event.repository.name }}&metricKeys=coverage"
+                  COVERAGE=$(curl -s -u ${{ secrets.SONAR_TOKEN }}: $SONAR_PROJECT_URL | jq -r '.component.measures[0].value')
+                  echo "Code coverage is: $COVERAGE%"
 
     build-backend:
         runs-on: ubuntu-latest
