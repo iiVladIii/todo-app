@@ -108,14 +108,36 @@ jobs:
                       -Dsonar.qualitygate.timeout=300
                       -Dsonar.qualitygate.conditions=coverage>80
 
-            - name: Retrieve SonarQube Coverage
+            - name: Get SonarQube coverage
+              id: get-coverage
               run: |
-                  SONAR_PROJECT_URL="${{ secrets.SONAR_HOST_URL }}/api/measures/component?component=${{ github.repository_owner }}_${{ github.event.repository.name }}&metricKeys=coverage"
-                  echo "Fetching coverage from: $SONAR_PROJECT_URL"
-                  RESPONSE=$(curl -s -u ${{ secrets.SONAR_TOKEN }}: $SONAR_PROJECT_URL)
-                  echo "Response: $RESPONSE"
-                  COVERAGE=$(echo $RESPONSE | jq -r '.component.measures[0].value')
-                  echo "Code coverage is: $COVERAGE%"
+                  # Install required tools
+                  sudo apt-get update
+                  sudo apt-get install -y jq curl
+
+                  # Get project key
+                  PROJECT_KEY="${{ github.repository_owner }}_${{ github.event.repository.name }}"
+
+                  # Wait for SonarQube analysis to complete
+                  sleep 10
+
+                  # Get coverage from SonarQube API
+                  COVERAGE=$(curl -s -u ${{ secrets.SONAR_TOKEN }}: "${{ secrets.SONAR_HOST_URL }}/api/measures/component?component=${PROJECT_KEY}&metricKeys=coverage" | jq -r '.component.measures[0].value')
+
+                  if [ -z "$COVERAGE" ]; then
+                    echo "Failed to retrieve coverage data"
+                    COVERAGE="Unknown"
+                  else
+                    COVERAGE="${COVERAGE}%"
+                  fi
+
+                  echo "Coverage: $COVERAGE"
+                  echo "coverage=$COVERAGE" >> $GITHUB_OUTPUT
+
+            - name: Create coverage summary
+              run: |
+                  echo "## Test Coverage Summary" >> $GITHUB_STEP_SUMMARY
+                  echo "Total test coverage: ${{ steps.get-coverage.outputs.coverage }}" >> $GITHUB_STEP_SUMMARY
 
     build-backend:
         runs-on: ubuntu-latest
