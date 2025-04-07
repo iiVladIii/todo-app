@@ -280,12 +280,35 @@ jobs:
               id: prepare
               run: |
                   # Получаем статусы всех jobs через GitHub API
-                  BUILD_STATUS="${{ needs.build.result }}"
-                  TEST_STATUS="${{ needs.test.result }}"
-                  DEPLOY_STATUS="${{ needs.deploy.result }}"
+                  TEST_BACKEND="${{ needs.test-backend.result }}"
+                  TEST_FRONTEND="${{ needs.test-frontend.result }}"
+                  SONARQUBE="${{ needs.sonarqube-analysis.result }}"
+                  BUILD_BACKEND="${{ needs.build-backend.result }}"
+                  BUILD_FRONTEND="${{ needs.build-frontend.result }}"
+                  BUILD_PUSH_IMAGES="${{ needs.build-and-push-images.result }}"
+                  DEPLOY="${{ needs.deploy.result }}"
 
-                  # Формируем сообщение
-                  if [[ "$BUILD_STATUS" == "success" && "$TEST_STATUS" == "success" && "$DEPLOY_STATUS" == "success" ]]; then
+                  # Формируем emoji для статусов
+                  function get_emoji() {
+                    if [[ "$1" == "success" ]]; then
+                      echo "✅"
+                    elif [[ "$1" == "skipped" ]]; then
+                      echo "⏭️"
+                    elif [[ "$1" == "cancelled" ]]; then
+                      echo "🚫"
+                    else
+                      echo "❌"
+                    fi
+                  }
+
+                  # Проверяем общий статус
+                  if [[ "$TEST_BACKEND" == "success" && \
+                        "$TEST_FRONTEND" == "success" && \
+                        "$SONARQUBE" == "success" && \
+                        "$BUILD_BACKEND" == "success" && \
+                        "$BUILD_FRONTEND" == "success" && \
+                        "$BUILD_PUSH_IMAGES" == "success" && \
+                        "$DEPLOY" == "success" ]]; then
                     echo "status=✅ Все этапы CI/CD успешно завершены!" >> $GITHUB_OUTPUT
                     echo "success=true" >> $GITHUB_OUTPUT
                   else
@@ -293,8 +316,25 @@ jobs:
                     echo "success=false" >> $GITHUB_OUTPUT
                   fi
 
-                  # Детальный статус
-                  echo "details=Build: $BUILD_STATUS%0ATest: $TEST_STATUS%0ADeploy: $DEPLOY_STATUS" >> $GITHUB_OUTPUT
+                  # Детальный статус каждого job с emoji
+                  TEST_BACKEND_EMOJI=$(get_emoji "$TEST_BACKEND")
+                  TEST_FRONTEND_EMOJI=$(get_emoji "$TEST_FRONTEND")
+                  SONARQUBE_EMOJI=$(get_emoji "$SONARQUBE")
+                  BUILD_BACKEND_EMOJI=$(get_emoji "$BUILD_BACKEND")
+                  BUILD_FRONTEND_EMOJI=$(get_emoji "$BUILD_FRONTEND")
+                  BUILD_PUSH_IMAGES_EMOJI=$(get_emoji "$BUILD_PUSH_IMAGES")
+                  DEPLOY_EMOJI=$(get_emoji "$DEPLOY")
+
+                  # Формируем детали для сообщения
+                  DETAILS="$TEST_BACKEND_EMOJI Тестирование бэкенда: $TEST_BACKEND%0A"
+                  DETAILS+="$TEST_FRONTEND_EMOJI Тестирование фронтенда: $TEST_FRONTEND%0A"
+                  DETAILS+="$SONARQUBE_EMOJI Анализ SonarQube: $SONARQUBE%0A"
+                  DETAILS+="$BUILD_BACKEND_EMOJI Сборка бэкенда: $BUILD_BACKEND%0A"
+                  DETAILS+="$BUILD_FRONTEND_EMOJI Сборка фронтенда: $BUILD_FRONTEND%0A"
+                  DETAILS+="$BUILD_PUSH_IMAGES_EMOJI Сборка и публикация образов: $BUILD_PUSH_IMAGES%0A"
+                  DETAILS+="$DEPLOY_EMOJI Деплой: $DEPLOY"
+
+                  echo "details=$DETAILS" >> $GITHUB_OUTPUT
 
             - name: Send Telegram notification
               uses: appleboy/telegram-action@master
@@ -310,4 +350,6 @@ jobs:
                       Репозиторий: ${{ github.repository }}
                       Ветка: ${{ github.ref_name }}
                       Коммит: ${{ github.event.head_commit.message }}
+                      Автор: ${{ github.actor }}
+
                       ${{ steps.prepare.outputs.success == 'false' && 'Подробности: https://github.com/' || '' }}${{ steps.prepare.outputs.success == 'false' && github.repository || '' }}${{ steps.prepare.outputs.success == 'false' && '/actions/runs/' || '' }}${{ steps.prepare.outputs.success == 'false' && github.run_id || '' }}
