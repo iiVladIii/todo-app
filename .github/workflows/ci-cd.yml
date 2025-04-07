@@ -57,7 +57,69 @@ jobs:
                   name: frontend-coverage
                   path: ./frontend/coverage/
                   retention-days: 1
+    sonarqube-security-scan:
+        runs-on: ubuntu-latest
+        needs: [test-backend, test-frontend]
+        steps:
+            - uses: actions/checkout@v3
+              with:
+                  fetch-depth: 0
 
+            - name: Set up Node.js
+              uses: actions/setup-node@v3
+              with:
+                  node-version: '18'
+
+            - name: Download backend coverage
+              uses: actions/download-artifact@v4
+              with:
+                  name: backend-coverage
+                  path: ./backend/coverage/
+
+            - name: Download frontend coverage
+              uses: actions/download-artifact@v4
+              with:
+                  name: frontend-coverage
+                  path: ./frontend/coverage/
+
+            - name: List coverage files
+              run: |
+                  echo "Backend coverage files:"
+                  ls -la ./backend/coverage/
+                  echo "Frontend coverage files:"
+                  ls -la ./frontend/coverage/
+
+            - name: SonarQube Security Scan
+              id: sonarqube-security
+              uses: SonarSource/sonarcloud-github-action@master
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+                  SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+              with:
+                  args: >
+                      -Dsonar.projectKey=${{ github.repository_owner }}_${{ github.event.repository.name }}
+                      -Dsonar.organization=${{ github.repository_owner }}
+                      -Dsonar.sources=backend/src,frontend/src
+                      -Dsonar.javascript.lcov.reportPaths=./frontend/coverage/lcov.info,./backend/coverage/lcov.info
+                      -Dsonar.coverage.exclusions=**/node_modules/**,**/tests/**,**/*.test.js,**/*.spec.js
+                      -Dsonar.qualitygate.wait=true
+                      -Dsonar.qualitygate.timeout=300
+                      -Dsonar.qualitygate.conditions=coverage>80
+                      -Dsonar.security.enabled=true
+                      -Dsonar.security.vulnerabilityProbability.critical=BLOCKER
+                      -Dsonar.security.vulnerabilityProbability.high=CRITICAL
+                      -Dsonar.security.vulnerabilityProbability.medium=MAJOR
+                      -Dsonar.security.vulnerabilityProbability.low=MINOR
+
+            - name: Check SonarQube Quality Gate
+              run: |
+                  if [[ "${{ steps.sonarqube-security.outputs.quality-gate-status }}" != "PASSED" ]]; then
+                    echo "SonarQube Quality Gate failed with status ${{ steps.sonarqube-security.outputs.quality-gate-status }}"
+                    echo "Please check the SonarQube dashboard for security vulnerabilities"
+                    exit 1
+                  fi
+                  echo "SonarQube Quality Gate passed successfully!"
     sonarqube-analysis:
         runs-on: ubuntu-latest
         needs: [test-backend, test-frontend]
@@ -262,98 +324,6 @@ jobs:
                   export KUBECONFIG=./kubeconfig
                   kubectl rollout status deployment/backend-deploy -n todo-app-deploy
                   kubectl rollout status deployment/frontend-deploy -n todo-app-deploy
-    #    notify:
-    #        runs-on: ubuntu-latest
-    #        needs:
-    #            [
-    #                test-backend,
-    #                test-frontend,
-    #                sonarqube-analysis,
-    #                build-backend,
-    #                build-frontend,
-    #                build-and-push-images,
-    #                deploy,
-    #            ]
-    #        if: always()
-    #        steps:
-    #            - name: Prepare notification
-    #              id: prepare
-    #              run: |
-    #                  # Получаем статусы всех jobs через GitHub API
-    #                  TEST_BACKEND="${{ needs.test-backend.result }}"
-    #                  TEST_FRONTEND="${{ needs.test-frontend.result }}"
-    #                  SONARQUBE="${{ needs.sonarqube-analysis.result }}"
-    #                  BUILD_BACKEND="${{ needs.build-backend.result }}"
-    #                  BUILD_FRONTEND="${{ needs.build-frontend.result }}"
-    #                  BUILD_PUSH_IMAGES="${{ needs.build-and-push-images.result }}"
-    #                  DEPLOY="${{ needs.deploy.result }}"
-    #
-    #                  # Формируем emoji для статусов
-    #                  function get_emoji() {
-    #                    if [[ "$1" == "success" ]]; then
-    #                      echo "✅"
-    #                    elif [[ "$1" == "skipped" ]]; then
-    #                      echo "⏭️"
-    #                    elif [[ "$1" == "cancelled" ]]; then
-    #                      echo "🚫"
-    #                    else
-    #                      echo "❌"
-    #                    fi
-    #                  }
-    #
-    #                  # Проверяем общий статус
-    #                  if [[ "$TEST_BACKEND" == "success" && \
-    #                        "$TEST_FRONTEND" == "success" && \
-    #                        "$SONARQUBE" == "success" && \
-    #                        "$BUILD_BACKEND" == "success" && \
-    #                        "$BUILD_FRONTEND" == "success" && \
-    #                        "$BUILD_PUSH_IMAGES" == "success" && \
-    #                        "$DEPLOY" == "success" ]]; then
-    #                    echo "status=✅ Все этапы CI/CD успешно завершены!" >> $GITHUB_OUTPUT
-    #                    echo "success=true" >> $GITHUB_OUTPUT
-    #                  else
-    #                    echo "status=❌ CI/CD завершился с ошибками!" >> $GITHUB_OUTPUT
-    #                    echo "success=false" >> $GITHUB_OUTPUT
-    #                  fi
-    #
-    #                  # Детальный статус каждого job с emoji
-    #                  TEST_BACKEND_EMOJI=$(get_emoji "$TEST_BACKEND")
-    #                  TEST_FRONTEND_EMOJI=$(get_emoji "$TEST_FRONTEND")
-    #                  SONARQUBE_EMOJI=$(get_emoji "$SONARQUBE")
-    #                  BUILD_BACKEND_EMOJI=$(get_emoji "$BUILD_BACKEND")
-    #                  BUILD_FRONTEND_EMOJI=$(get_emoji "$BUILD_FRONTEND")
-    #                  BUILD_PUSH_IMAGES_EMOJI=$(get_emoji "$BUILD_PUSH_IMAGES")
-    #                  DEPLOY_EMOJI=$(get_emoji "$DEPLOY")
-    #
-    #                  # Формируем детали для сообщения
-    #                  DETAILS="$TEST_BACKEND_EMOJI Тестирование бэкенда: $TEST_BACKEND%0A"
-    #                  DETAILS+="$TEST_FRONTEND_EMOJI Тестирование фронтенда: $TEST_FRONTEND%0A"
-    #                  DETAILS+="$SONARQUBE_EMOJI Анализ SonarQube: $SONARQUBE%0A"
-    #                  DETAILS+="$BUILD_BACKEND_EMOJI Сборка бэкенда: $BUILD_BACKEND%0A"
-    #                  DETAILS+="$BUILD_FRONTEND_EMOJI Сборка фронтенда: $BUILD_FRONTEND%0A"
-    #                  DETAILS+="$BUILD_PUSH_IMAGES_EMOJI Сборка и публикация образов: $BUILD_PUSH_IMAGES%0A"
-    #                  DETAILS+="$DEPLOY_EMOJI Деплой: $DEPLOY"
-    #
-    #                  echo "details=$DETAILS" >> $GITHUB_OUTPUT
-    #
-    #            - name: Send Telegram notification
-    #              uses: appleboy/telegram-action@master
-    #              with:
-    #                  to: ${{ secrets.TELEGRAM_TO }}
-    #                  token: ${{ secrets.TELEGRAM_TOKEN }}
-    #                  message: |
-    #                      ${{ steps.prepare.outputs.status }}
-    #
-    #                      Детали:
-    #                      ${{ steps.prepare.outputs.details }}
-    #
-    #                      Репозиторий: ${{ github.repository }}
-    #                      Ветка: ${{ github.ref_name }}
-    #                      Коммит: ${{ github.event.head_commit.message }}
-    #                      Автор: ${{ github.actor }}
-    #
-    #                      ${{ steps.prepare.outputs.success == 'false' && 'Подробности: https://github.com/' || '' }}${{ steps.prepare.outputs.success == 'false' && github.repository || '' }}${{ steps.prepare.outputs.success == 'false' && '/actions/runs/' || '' }}${{ steps.prepare.outputs.success == 'false' && github.run_id || '' }}
-
     notify:
         runs-on: ubuntu-latest
         needs:
