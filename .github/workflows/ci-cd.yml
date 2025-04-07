@@ -107,8 +107,6 @@ jobs:
                       -Dsonar.qualitygate.timeout=300
                       -Dsonar.coverage.minimum=80
                       -Dsonar.qualitygate.condition=coverage>=80
-                      -Dsonar.javascript.coveragePlugin=lcov
-                      -Dsonar.qualitygate.quality.gate.name=Code_Coverage_80_Percent
 
     build-backend:
         runs-on: ubuntu-latest
