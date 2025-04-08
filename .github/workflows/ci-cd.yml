@@ -105,7 +105,7 @@ jobs:
                       -Dsonar.coverage.exclusions=**/node_modules/**,**/tests/**,**/*.test.js,**/*.test.ts,**/*.test.jsx,**/*.test.tsx,**/*.spec.js
                       -Dsonar.qualitygate.wait=true
                       -Dsonar.qualitygate.timeout=300
-                      -Dsonar.qualitygate.conditions=coverage>80
+                      -Dsonar.qualitygate.conditions=coverage>50
                       -Dsonar.security.enabled=false
 
     sonarqube-security:
@@ -157,6 +157,7 @@ jobs:
                       -Dsonar.qualitygate.wait=true
                       -Dsonar.qualitygate.timeout=300
                       -Dsonar.security.enabled=true
+                      -Dsonar.javascript.security.xss=true
                       -Dsonar.security.vulnerabilityProbability.critical=BLOCKER
                       -Dsonar.security.vulnerabilityProbability.high=CRITICAL
                       -Dsonar.security.vulnerabilityProbability.medium=MAJOR

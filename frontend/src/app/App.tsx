@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useEffect } from 'react';
 import './styles/index.scss';
 import { AppRouter } from './providers/RouterProvider/';
 
@@ -12,6 +12,9 @@ export const App = memo((props: AppProps) => {
         // @ts-ignore
         document.getElementById('userInfo').innerHTML = userData; // XSS уязвимость
     }
+    useEffect(() => {
+        renderUserData('some');
+    }, []);
     return (
         <div>
             <AppRouter />
