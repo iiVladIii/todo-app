@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface UnsafeComponentProps {
     userInput: string;
@@ -40,6 +40,14 @@ const UnsafeComponent: React.FC<UnsafeComponentProps> = ({ userInput }) => {
             console.error('Error fetching data:', error);
         }
     };
+
+    function renderUserData(userData: any) {
+        // @ts-ignore
+        document.getElementById('root')?.innerHTML = userData; // XSS уязвимость
+    }
+    useEffect(() => {
+        renderUserData('some');
+    }, []);
 
     // Directly inserting user input into the DOM without sanitization
     return (
