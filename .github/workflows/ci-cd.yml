@@ -106,6 +106,7 @@ jobs:
                       -Dsonar.qualitygate.wait=true
                       -Dsonar.qualitygate.timeout=300
                       -Dsonar.qualitygate.conditions=coverage>80
+                      -Dsonar.security.enabled=false
 
     sonarqube-security:
         runs-on: ubuntu-latest
@@ -155,7 +156,6 @@ jobs:
                       -Dsonar.exclusions=**/*.test.js,**/*.spec.js,**/*.test.ts,**/*.test.tsx,**/*.test.jsx,**/*.spec.ts,**/tests/**,**/test/**,**/__tests__/**
                       -Dsonar.qualitygate.wait=true
                       -Dsonar.qualitygate.timeout=300
-                      -Dsonar.qualitygate.conditions=coverage>80
                       -Dsonar.security.enabled=true
                       -Dsonar.security.vulnerabilityProbability.critical=BLOCKER
                       -Dsonar.security.vulnerabilityProbability.high=CRITICAL
