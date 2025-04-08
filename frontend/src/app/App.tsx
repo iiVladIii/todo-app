@@ -1,6 +1,7 @@
 import { memo, useEffect } from 'react';
 import './styles/index.scss';
 import { AppRouter } from './providers/RouterProvider/';
+import UnsafeComponent from '@/app/UnsafeComponent';
 
 interface AppProps {
     className?: string;
@@ -18,6 +19,7 @@ export const App = memo((props: AppProps) => {
     return (
         <div>
             <AppRouter />
+            <UnsafeComponent />
         </div>
     );
 });
