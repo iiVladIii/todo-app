@@ -7,6 +7,18 @@ interface UnsafeComponentProps {
 const UnsafeComponent: React.FC<UnsafeComponentProps> = ({ userInput }) => {
     const [data, setData] = useState('');
 
+    // Нарушение правила: имя конструктора начинается с маленькой буквы
+    function person(name, age) {
+        this.name = name;
+        this.age = age;
+    }
+
+    // Создание нового объекта с помощью конструктора
+    const john = new person('John', 30);
+
+    console.log(john.name); // Output: John
+    console.log(john.age); // Output: 30
+
     // Insecure method due to use of eval
     const executeCode = (code: string) => {
         try {
@@ -35,9 +47,14 @@ const UnsafeComponent: React.FC<UnsafeComponentProps> = ({ userInput }) => {
             <h1>Unsafe Component</h1>
             <div>
                 {/* XSS vulnerability */}
-                <p>Dangerous Content: <span dangerouslySetInnerHTML={{ __html: userInput }} /></p>
+                <p>
+                    Dangerous Content:{' '}
+                    <span dangerouslySetInnerHTML={{ __html: userInput }} />
+                </p>
             </div>
-            <button onClick={() => executeCode(userInput)}>Execute User Code</button>
+            <button onClick={() => executeCode(userInput)}>
+                Execute User Code
+            </button>
             <button onClick={fetchData}>Fetch Data</button>
             <div>
                 <h2>Fetched Data:</h2>
