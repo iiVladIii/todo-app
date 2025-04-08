@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-    render,
-    screen,
-    waitFor,
-    fireEvent,
-    act,
-} from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { TodoPage } from './TodoPage';
 import { fetchLists, createList, deleteList } from '@/entities/TodoList';
 import { MemoryRouter } from 'react-router-dom';

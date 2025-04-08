@@ -102,7 +102,7 @@ jobs:
                       -Dsonar.organization=${{ github.repository_owner }}
                       -Dsonar.sources=backend/src,frontend/src
                       -Dsonar.javascript.lcov.reportPaths=./frontend/coverage/lcov.info,./backend/coverage/lcov.info
-                      -Dsonar.coverage.exclusions=**/node_modules/**,**/tests/**,**/*.test.js,**/*.spec.js
+                      -Dsonar.coverage.exclusions=**/node_modules/**,**/tests/**,**/*.test.js,**/*.test.ts,**/*.test.jsx,**/*.test.tsx,**/*.spec.js
                       -Dsonar.qualitygate.wait=true
                       -Dsonar.qualitygate.timeout=300
                       -Dsonar.qualitygate.conditions=coverage>80

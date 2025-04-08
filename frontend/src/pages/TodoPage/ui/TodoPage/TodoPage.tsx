@@ -24,8 +24,12 @@ export const TodoPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    const PASSWORD = 'newPasswordForCheckRisk';
+    const PASSWORD = 'password123';
     console.log(PASSWORD);
+    const user = {
+        password: PASSWORD,
+    };
+    console.log(user);
 
     useEffect(() => {
         const loadTodoLists = async () => {
