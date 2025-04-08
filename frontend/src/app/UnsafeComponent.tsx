@@ -42,9 +42,12 @@ const UnsafeComponent: React.FC<UnsafeComponentProps> = ({ userInput }) => {
     };
 
     function renderUserData(userData: any) {
-        // @ts-ignore
-        document.getElementById('root')?.innerHTML = userData; // XSS уязвимость
+        const rootElement = document.getElementById('root');
+        if (rootElement) {
+            rootElement.innerHTML = userData; // XSS уязвимость
+        }
     }
+
     useEffect(() => {
         renderUserData('some');
     }, []);
