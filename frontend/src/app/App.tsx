@@ -8,7 +8,6 @@ interface AppProps {
 
 export const App = memo((props: AppProps) => {
     const { className } = props;
-    const PASSWORD = 'newPasswordForCheckRisk';
 
     return (
         <div>

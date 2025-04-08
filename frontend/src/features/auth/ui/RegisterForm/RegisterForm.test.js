@@ -19,6 +19,7 @@ jest.mock('react-router-dom', () => ({
 describe('Register Component', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        jest.spyOn(console, 'log').mockImplementation(() => {});
     });
 
     test('renders the Register component', () => {

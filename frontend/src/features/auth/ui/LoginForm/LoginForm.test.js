@@ -25,6 +25,9 @@ jest.mock('react-router-dom', () => {
 });
 
 describe('Login Component', () => {
+    beforeEach(() => {
+        jest.spyOn(console, 'log').mockImplementation(() => {});
+    });
     test('renders Login component', () => {
         render(<Login />, { wrapper: BrowserRouter });
 
