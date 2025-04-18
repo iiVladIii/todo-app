@@ -3,7 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const sequelize = require('./config/db');
 const routes = require('./routes');
-const metricsMiddleware = require('./middleware/metricsMiddleware');
+
 const { port } = require('./config/config');
 
 const app = express();
