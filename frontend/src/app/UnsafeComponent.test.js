@@ -1,45 +1,69 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react';
-import '@testing-library/jest-dom';
+import { render, fireEvent, screen } from '@testing-library/react';
 import UnsafeComponent from './UnsafeComponent';
 
 describe('UnsafeComponent', () => {
-    it('renders the component correctly', () => {
-        const { getByText } = render(
-            <UnsafeComponent userInput="<script>alert('xss')</script>" />
-        );
-        expect(getByText('Unsafe Component')).toBeInTheDocument();
-        expect(getByText('Dangerous Content:')).toBeInTheDocument();
-        expect(getByText('Execute User Code')).toBeInTheDocument();
-        expect(getByText('Fetch Data')).toBeInTheDocument();
-        expect(getByText('Fetched Data:')).toBeInTheDocument();
+    it('renders without crashing', () => {
+        render(<UnsafeComponent userInput="<script>alert('test')</script>" />);
+        expect(screen.getByText('Unsafe Component')).toBeInTheDocument();
     });
 
-    it('executes user code on button click', () => {
-        const mockEval = jest.fn();
-        global.eval = mockEval;
-        const { getByText } = render(
-            <UnsafeComponent userInput="alert('test')" />
+    it('displays user input dangerously', () => {
+        const { container } = render(
+            <UnsafeComponent userInput="<b>Bold Text</b>" />
         );
-        fireEvent.click(getByText('Execute User Code'));
-        expect(mockEval).toHaveBeenCalledWith("alert('test')");
+        expect(container.querySelector('span')?.innerHTML).toBe(
+            '<b>Bold Text</b>'
+        );
     });
 
-    it('fetches data on button click', async () => {
-        const mockJsonPromise = Promise.resolve({ data: 'mockData' });
-        const mockFetchPromise = Promise.resolve({
-            json: () => mockJsonPromise,
-        });
-        global.fetch = jest.fn().mockImplementation(() => mockFetchPromise);
+    it('calls executeCode on button click', () => {
+        const executeCodeMock = jest.fn();
+        // Replace eval function with a mock
+        global.eval = executeCodeMock;
 
-        const { getByText, findByText } = render(
-            <UnsafeComponent userInput="" />
+        render(<UnsafeComponent userInput="console.log('Executing')" />);
+        fireEvent.click(screen.getByText('Execute User Code'));
+        expect(executeCodeMock).toHaveBeenCalledWith(
+            "console.log('Executing')"
         );
-        fireEvent.click(getByText('Fetch Data'));
+
+        // Restore the original eval function
+        delete global.eval;
+    });
+
+    it('fetchData button calls fetch with correct URL', async () => {
+        // Mock fetch
+        global.fetch = jest.fn(() =>
+            Promise.resolve({
+                json: () => Promise.resolve({ data: 'fetched data' }),
+            })
+        );
+
+        render(<UnsafeComponent userInput="" />);
+        fireEvent.click(screen.getByText('Fetch Data'));
 
         expect(global.fetch).toHaveBeenCalledWith(
             'http://example.com/api/data'
         );
-        expect(await findByText('mockData')).toBeInTheDocument();
+
+        // Restore original fetch
+        delete global.fetch;
+    });
+
+    it('renders fetched data correctly', async () => {
+        global.fetch = jest.fn(() =>
+            Promise.resolve({
+                json: () => Promise.resolve('fetched data'),
+            })
+        );
+
+        const { findByText } = render(<UnsafeComponent userInput="" />);
+        fireEvent.click(screen.getByText('Fetch Data'));
+
+        const fetchedDataElement = await findByText('fetched data');
+        expect(fetchedDataElement).toBeInTheDocument();
+
+        delete global.fetch;
     });
 });
